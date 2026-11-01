@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#07090d">
+  <title>BLACK RUSSIA — открытый город</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23080a0e'/%3E%3Cpath d='M14 46V18h10l8 16 8-16h10v28H41V32l-7 14h-4l-7-14v14z' fill='%23ffc400'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="game" aria-label="Игровое поле"></canvas>
+  <div id="vignette"></div>
+  <div id="grain"></div>
+
+  <div id="hud" class="hidden">
+    <div class="hud-top-left">
+      <div class="brand">BLACK<span>RUSSIA</span></div>
+      <div class="rank" id="rank">Новичок</div>
+      <div class="bars">
+        <div class="bar health"><span class="bar-icon">♥</span><i id="healthFill"></i><b id="healthText">100</b></div>
+        <div class="bar armor"><span class="bar-icon">◆</span><i id="armorFill"></i><b id="armorText">0</b></div>
+      </div>
+    </div>
+
+    <div class="hud-top-right">
+      <div class="money" id="money">2 500 <span>₽</span></div>
+      <div class="clockline"><span id="clock">21:20</span><em></em><span id="daylabel">День 1</span></div>
+      <div class="stars" id="stars" aria-label="Розыск"></div>
+    </div>
+
+    <div class="top-actions">
+      <button id="btnSound" class="icon-btn" title="Звук" aria-label="Включить или выключить звук">♪</button>
+      <button id="btnPause" class="icon-btn" title="Пауза" aria-label="Пауза">Ⅱ</button>
+    </div>
+
+    <div id="objective" class="objective hidden">
+      <div class="obj-kicker" id="objectiveKicker">ЗАДАНИЕ</div>
+      <div class="obj-title" id="objectiveTitle"></div>
+      <div class="obj-sub" id="objectiveSub"></div>
+      <div class="obj-progress"><i id="objectiveProgress"></i></div>
+    </div>
+
+    <div id="hint" class="hint hidden"></div>
+
+    <div class="hud-bottom-left">
+      <div class="map-frame">
+        <canvas id="minimap" width="240" height="180"></canvas>
+        <div class="map-north">N</div>
+        <div class="map-scan"></div>
+      </div>
+      <div class="map-caption"><span></span> BLACK RUSSIA · CITY</div>
+    </div>
+
+    <div class="hud-bottom-right">
+      <div id="speedo" class="speedo hidden">
+        <div class="speed-ring"><b id="speedValue">0</b></div>
+        <div class="speed-meta">
+          <span class="speed-unit">КМ/Ч</span>
+          <div class="car-hp"><i id="carHpFill"></i><span>АВТО</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="toastWrap" class="toast-wrap"></div>
+
+    <div id="touchControls" class="touch-controls hidden">
+      <div id="joystick" class="joystick" aria-label="Джойстик">
+        <div class="joy-ring"></div>
+        <div id="joyKnob" class="joy-knob"></div>
+      </div>
+      <div class="touch-buttons">
+        <button id="btnBrakeTouch" class="round-btn small" aria-label="Ручной тормоз">✋</button>
+        <button id="btnActionTouch" class="round-btn action" aria-label="Действие">E</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="screenTitle" class="screen title-screen">
+    <div class="title-top">
+      <div class="title-badge">18+ · ФАНАТСКИЙ ПРОЕКТ</div>
+      <button id="btnSoundTitle" class="icon-btn ghost-btn" title="Звук">♪</button>
+    </div>
+    <div class="title-content">
+      <div class="eyebrow">ОТКРЫТЫЙ ГОРОД · УЛИЧНЫЕ ЗАКАЗЫ · ПОГОНИ</div>
+      <h1 class="logo"><span class="logo-black">BLACK</span><span class="logo-yellow">RUSSIA</span></h1>
+      <div class="title-sub">Возьми тачку. Возьми заказ. Не попадись.</div>
+      <div class="menu">
+        <button class="btn primary" id="btnNew"><span>Начать новую игру</span><i>→</i></button>
+        <button class="btn" id="btnContinue"><span>Продолжить</span><i>↻</i></button>
+        <button class="btn ghost" id="btnHelp"><span>Как играть</span><i>?</i></button>
+      </div>
+    </div>
+    <div class="title-footer">
+      <div>WASD — движение · E — действие · ESC — пауза</div>
+      <div>2D-мини-игра по мотивам Black Russia. Не связана с оригинальной игрой.</div>
+    </div>
+  </div>
+
+  <div id="screenHelp" class="screen overlay hidden">
+    <div class="panel help-panel">
+      <div class="panel-head">
+        <div>
+          <div class="eyebrow">ПАМЯТКА</div>
+          <h2>Как играть</h2>
+        </div>
+        <button class="close-btn" id="btnHelpClose" aria-label="Закрыть">✕</button>
+      </div>
+      <div class="help-grid">
+        <div class="help-card">
+          <div class="help-icon">⌨</div>
+          <h3>Пешком</h3>
+          <p><kbd>WASD</kbd> / <kbd>←↑↓→</kbd> — движение<br><kbd>Shift</kbd> — бег<br><kbd>E</kbd> — сесть в машину / взаимодействие</p>
+        </div>
+        <div class="help-card">
+          <div class="help-icon">⛟</div>
+          <h3>За рулём</h3>
+          <p><kbd>W</kbd> — газ, <kbd>S</kbd> — назад<br><kbd>A</kbd> <kbd>D</kbd> — руль<br><kbd>Space</kbd> — ручник, <kbd>E</kbd> — выйти</p>
+        </div>
+        <div class="help-card">
+          <div class="help-icon">₽</div>
+          <h3>Заработок</h3>
+          <p>Бирюзовый маркер — заказ такси. Оранжевый — угон. Зелёные купюры на улицах тоже деньги.</p>
+        </div>
+        <div class="help-card">
+          <div class="help-icon">★</div>
+          <h3>Полиция</h3>
+          <p>За угон и наезды растёт розыск. Уходите из зоны видимости, и звёзды начнут гаснуть. Ноль здоровья — штраф.</p>
+        </div>
+        <div class="help-card">
+          <div class="help-icon">◆</div>
+          <h3>Машина</h3>
+          <p>Следите за прочностью: после сильных аварий авто дымится и может взорваться. Выходите заранее.</p>
+        </div>
+        <div class="help-card">
+          <div class="help-icon">◉</div>
+          <h3>Телефон</h3>
+          <p>Пауза — <kbd>Esc</kbd>. Там же сохранение, статистика, звук и повторное управление.</p>
+        </div>
+      </div>
+      <div class="panel-foot">
+        <button class="btn primary" id="btnHelpClose2">Понятно</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="screenPause" class="screen overlay hidden">
+    <div class="panel pause-panel">
+      <div class="panel-head">
+        <div>
+          <div class="eyebrow">ПАУЗА</div>
+          <h2>BLACK RUSSIA</h2>
+        </div>
+        <button class="close-btn" id="btnPauseClose" aria-label="Продолжить">✕</button>
+      </div>
+      <div class="stats-grid">
+        <div class="stat"><span>На счету</span><b id="pauseMoney">0 ₽</b></div>
+        <div class="stat"><span>Выполнено заказов</span><b id="pauseJobs">0</b></div>
+        <div class="stat"><span>Ранг</span><b id="pauseRank">Новичок</b></div>
+        <div class="stat"><span>Макс. розыск</span><b id="pauseWanted">0 ★</b></div>
+      </div>
+      <div class="pause-actions">
+        <button class="btn primary" id="btnResume">Продолжить</button>
+        <button class="btn" id="btnSave">Сохранить</button>
+        <button class="btn ghost" id="btnPauseHelp">Управление</button>
+        <button class="btn danger" id="btnRestart">Начать заново</button>
+      </div>
+      <div class="save-note" id="saveNote">Прогресс сохраняется в браузере.</div>
+    </div>
+  </div>
+
+  <div id="screenBusted" class="screen busted-screen hidden">
+    <div class="busted-card">
+      <div class="busted-kicker" id="bustedKicker">ВАС ЗАДЕРЖАЛИ</div>
+      <h2 id="bustedTitle">Штраф и звёзды</h2>
+      <p id="bustedText">Полиция доставила вас в участок.</p>
+      <div class="busted-bar"><i id="bustedTimer"></i></div>
+      <div class="busted-hint">Возвращение в город…</div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
